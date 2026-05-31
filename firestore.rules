@@ -1,0 +1,85 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Common security primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerified() {
+      return isSignedIn();
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Entity validation builders
+    function isValidSeccion(data) {
+      return data.userId is string && data.userId.size() <= 128
+        && data.grado is string && data.grado.size() <= 128
+        && data.nivel is string && data.nivel.size() <= 128
+        && data.nombre is string && data.nombre.size() <= 256;
+    }
+
+    function isValidEstudiante(data) {
+      return data.id is string && data.id.size() <= 128
+        && data.name is string && data.name.size() <= 256
+        && data.role is string && (data.role == 'comunicador' || data.role == 'adivinador')
+        && data.locked is bool;
+    }
+
+    // Secciones Collection Rules
+    match /secciones/{seccionId} {
+      allow get: if isVerified() && (resource == null || existing().userId == request.auth.uid);
+      allow list: if isVerified() && resource.data.userId == request.auth.uid;
+      
+      allow create: if isVerified() 
+        && isValidId(seccionId) 
+        && isValidSeccion(incoming()) 
+        && incoming().userId == request.auth.uid;
+        
+      allow update: if isVerified() 
+        && isValidSeccion(incoming())
+        && existing().userId == request.auth.uid
+        && incoming().userId == existing().userId;
+        
+      allow delete: if isVerified() && existing().userId == request.auth.uid;
+
+      // Inner Estudiantes Subcollection Rules under a specific Section
+      match /estudiantes/{estudianteId} {
+        allow get: if isVerified() 
+          && get(/databases/$(database)/documents/secciones/$(seccionId)).data.userId == request.auth.uid;
+        allow list: if isVerified() 
+          && get(/databases/$(database)/documents/secciones/$(seccionId)).data.userId == request.auth.uid;
+          
+        allow create: if isVerified() 
+          && isValidId(estudianteId) 
+          && get(/databases/$(database)/documents/secciones/$(seccionId)).data.userId == request.auth.uid
+          && isValidEstudiante(incoming());
+          
+        allow update: if isVerified() 
+          && get(/databases/$(database)/documents/secciones/$(seccionId)).data.userId == request.auth.uid
+          && isValidEstudiante(incoming())
+          && incoming().id == existing().id;
+          
+        allow delete: if isVerified() 
+          && get(/databases/$(database)/documents/secciones/$(seccionId)).data.userId == request.auth.uid;
+      }
+    }
+  }
+}

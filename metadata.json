@@ -1,0 +1,8 @@
+{
+  "name": "Remix: TABÚEDU",
+  "description": "Un juego educativo estilo Tabú con integración de IA para generar tarjetas personalizadas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "entities": {
+    "Seccion": {
+      "title": "School Section",
+      "description": "A school section containing students, grade, level, and owner user ID.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner user UID who created this section"
+        },
+        "grado": {
+          "type": "string",
+          "description": "The grade number/level"
+        },
+        "nivel": {
+          "type": "string",
+          "description": "Educational level (Primaria, Secundaria, etc.)"
+        },
+        "nombre": {
+          "type": "string",
+          "description": "Name or identifier of the section"
+        },
+        "createdAt": {
+          "type": "object",
+          "description": "Firebase server timestamp of creation"
+        },
+        "updatedAt": {
+          "type": "object",
+          "description": "Firebase server timestamp of last update"
+        }
+      },
+      "required": ["userId", "grado", "nivel", "nombre"]
+    },
+    "Estudiante": {
+      "title": "Student",
+      "description": "A student in a specific section.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Auto-generated random ID for frontend state consistency"
+        },
+        "name": {
+          "type": "string",
+          "description": "Full name of the student"
+        },
+        "role": {
+          "type": "string",
+          "description": "Primary designated role (comunicador or adivinador)"
+        },
+        "locked": {
+          "type": "boolean",
+          "description": "Whether the student is locked to their team configuration"
+        },
+        "createdAt": {
+          "type": "object",
+          "description": "Creation timestamp for sorting or reference"
+        }
+      },
+      "required": ["id", "name"]
+    }
+  },
+  "firestore": {
+    "/secciones/{seccionId}": {
+      "schema": "Seccion",
+      "description": "School sections owned by the signed-in teacher."
+    },
+    "/secciones/{seccionId}/estudiantes/{estudianteId}": {
+      "schema": "Estudiante",
+      "description": "The list of students enrolled under a specific school section."
+    }
+  }
+}
